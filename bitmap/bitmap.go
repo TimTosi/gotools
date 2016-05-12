@@ -1,9 +1,6 @@
 package bitmap
 
-import (
-	"fmt"
-	"reflect"
-)
+import "reflect"
 
 // -----------------------------------------------------------------------------
 
@@ -24,61 +21,28 @@ func valToBitMap(valArrays ...[]interface{}) map[interface{}][]int {
 
 // TODO
 func appendMatrix(a, b [][]interface{}) [][]interface{} {
-	var res [][]interface{}
+	tmp := a[0]
 
-	fmt.Println("MATRIX TEST------------------------------------")
-	fmt.Printf("A: %v \n", a)
-	fmt.Printf("B: %v \n", b)
-
-	if len(a) == 0 {
-		fmt.Println("MATRIX ZERO LEN A")
-		fmt.Printf("\nRES: %v \n", b)
-		fmt.Println("MATRIX OVER--------------------------------------")
-		return b
-	} else if len(b) == 0 {
-		fmt.Println("MATRIX ZERO LEN B")
-		fmt.Printf("\nRES: %v \n", a)
-		fmt.Println("MATRIX OVER--------------------------------------")
-		return a
-	}
-
-	res = make([][]interface{}, len(a)*len(b))
-
-	for i := 0; i < len(res); i++ {
-		for j := 0; j < len(a); j++ {
-			for k := 0; k < len(b); k++ {
-				res[i] = append(res[i], a[j]...)
-				res[i] = append(res[i], b[k]...)
-			}
+	for i := 0; i < len(b); i++ {
+		if i == len(a) {
+			a = append(a, tmp)
 		}
+		a[i] = append(a[i], b[i]...)
 	}
-	fmt.Printf("\nRES: %v \n", res)
-	fmt.Println("MATRIX OVER--------------------------------------")
-	return res
+	return a
 }
 
-func appendArrays(a, b [][]interface{}) [][]interface{} {
+func concatArrays(a, b [][]interface{}) [][]interface{} {
 	var res [][]interface{}
-
-	res = make([][]interface{}, 0)
+	var tmp []interface{}
 
 	for i := 0; i < len(a); i++ {
-		res = append(res, a[i])
+		tmp = append(tmp, a[i]...)
 	}
 	for j := 0; j < len(b); j++ {
-		res = append(res, b[j])
+		tmp = append(tmp, b[j]...)
 	}
-
-	// for i := 0; i < len(res); i++ {
-	// 	for j := 0; j < len(a); j++ {
-	// 		for k := 0; k < len(b); k++ {
-	// 			res[i] = append(res[i], a[j]...)
-	// 			res[i] = append(res[i], b[k]...)
-	// 		}
-	// 	}
-	// }
-	fmt.Printf("\nRES: %v \n", res)
-	fmt.Println("MATRIX OVER--------------------------------------")
+	res = append(res, tmp)
 	return res
 }
 
@@ -87,64 +51,34 @@ func Flatten(iface interface{}) [][]interface{} {
 	var flatArray [][]interface{}
 	concreteVal := reflect.ValueOf(iface)
 
-	// fmt.Printf("TYPEOF is:%s\n", typeOf)
-	// fmt.Printf("VALUEOF is:%s\n", valOf)
-	// fmt.Printf("KINDOF is:%s\n", valOf.Kind())
-
 	switch concreteVal.Kind() {
-	case reflect.Ptr:
+	case reflect.Ptr, reflect.Uintptr, reflect.UnsafePointer:
 		return Flatten(concreteVal.Elem().Interface())
 	case reflect.Struct:
 		for i := 0; i < concreteVal.NumField(); i++ {
 			f := concreteVal.Field(i)
-			flatArray = appendMatrix(flatArray, Flatten(f.Interface()))
+			if f.Kind() == reflect.Map {
+				flatArray = appendMatrix(flatArray, Flatten(f.Interface()))
+			} else {
+				flatArray = concatArrays(flatArray, Flatten(f.Interface()))
+			}
 		}
 	case reflect.Map:
 		for _, k := range concreteVal.MapKeys() {
 			v := concreteVal.MapIndex(k)
-			flatArray = appendArrays(flatArray, Flatten(v.Interface()))
+			flatArray = append(flatArray, Flatten(v.Interface())...)
 		}
 	case reflect.Array, reflect.Slice:
 		for i := 0; i < concreteVal.Len(); i++ {
 			flatArray = appendMatrix(flatArray, Flatten(concreteVal.Index(i).Interface()))
-			fmt.Println(concreteVal.Index(i))
 		}
-		fmt.Println("J'suis array / slice")
 	case reflect.Invalid:
-		fmt.Println("J'suis NIL")
-	case reflect.UnsafePointer,
-		reflect.Uintptr,
-		reflect.Interface,
-		reflect.Func,
-		reflect.Chan:
-		panic("Type not handled.")
+	case reflect.Interface, reflect.Func, reflect.Chan:
+		panic("Type not handled.") // Convert to byte array
 	default:
-		// fmt.Println("DEFAULT TEST")
 		var tmpArray []interface{}
 		tmpArray = append(tmpArray, concreteVal)
 		flatArray = append(flatArray, tmpArray)
-		// fmt.Println("DEFAULT OVER")
 	}
-	fmt.Printf("COUCOU mon gars !:%s\n", concreteVal.Kind())
-
 	return flatArray
 }
-
-// func DeepFields(iface interface{}) []reflect.Value {
-// fields := make([]reflect.Value, 0)
-// ifv := reflect.ValueOf(iface)
-// ift := reflect.TypeOf(iface)
-//
-// for i := 0; i < ift.NumField(); i++ {
-// v := ifv.Field(i)
-//
-// switch v.Kind() {
-// case reflect.Struct:
-// fields = append(fields, DeepFields(v.Interface())...)
-// default:
-// fields = append(fields, v)
-// }
-// }
-//
-// return fields
-// }
