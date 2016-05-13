@@ -33,7 +33,6 @@ func appendMatrix(a, b [][]interface{}) [][]interface{} {
 }
 
 func concatArrays(a, b [][]interface{}) [][]interface{} {
-	var res [][]interface{} // ERASE
 	var tmp []interface{}
 
 	for i := 0; i < len(a); i++ {
@@ -42,8 +41,7 @@ func concatArrays(a, b [][]interface{}) [][]interface{} {
 	for j := 0; j < len(b); j++ {
 		tmp = append(tmp, b[j]...)
 	}
-	res = append(res, tmp) // return append([][]interface{}{}, tmp)
-	return res             // ERASE
+	return append([][]interface{}{}, tmp)
 }
 
 // TODO
@@ -73,9 +71,7 @@ func Flatten(iface interface{}) [][]interface{} {
 			flatArray = append(flatArray, Flatten(concreteVal.Index(i).Interface())...)
 		}
 	default:
-		var tmpArray []interface{}
-		tmpArray = append(tmpArray, concreteVal)
-		flatArray = append(flatArray, tmpArray)
+		return [][]interface{}{{concreteVal}}
 	}
 	return flatArray
 }

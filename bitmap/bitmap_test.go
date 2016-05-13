@@ -162,6 +162,11 @@ func TestFlatten_singleValue_chan(t *testing.T) {
 
 // -----------------------------------------------------------------------------
 
+// func TestFlatten_singleValue_func(t *testing.T) {
+// 	myFunc := func() { print("Yo") }
+// 	ensure.Subset(t, Flatten(myFunc), generateSubsetSingle(myFunc))
+// }
+
 // struct single val
 
 // struct composed
