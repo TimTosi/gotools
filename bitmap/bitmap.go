@@ -33,7 +33,7 @@ func appendMatrix(a, b [][]interface{}) [][]interface{} {
 }
 
 func concatArrays(a, b [][]interface{}) [][]interface{} {
-	var res [][]interface{}
+	var res [][]interface{} // ERASE
 	var tmp []interface{}
 
 	for i := 0; i < len(a); i++ {
@@ -42,8 +42,8 @@ func concatArrays(a, b [][]interface{}) [][]interface{} {
 	for j := 0; j < len(b); j++ {
 		tmp = append(tmp, b[j]...)
 	}
-	res = append(res, tmp)
-	return res
+	res = append(res, tmp) // return append([][]interface{}{}, tmp)
+	return res             // ERASE
 }
 
 // TODO
@@ -52,7 +52,7 @@ func Flatten(iface interface{}) [][]interface{} {
 	concreteVal := reflect.ValueOf(iface)
 
 	switch concreteVal.Kind() {
-	case reflect.Ptr, reflect.Uintptr, reflect.UnsafePointer:
+	case reflect.Ptr:
 		return Flatten(concreteVal.Elem().Interface())
 	case reflect.Struct:
 		for i := 0; i < concreteVal.NumField(); i++ {
@@ -70,11 +70,8 @@ func Flatten(iface interface{}) [][]interface{} {
 		}
 	case reflect.Array, reflect.Slice:
 		for i := 0; i < concreteVal.Len(); i++ {
-			flatArray = appendMatrix(flatArray, Flatten(concreteVal.Index(i).Interface()))
+			flatArray = append(flatArray, Flatten(concreteVal.Index(i).Interface())...)
 		}
-	case reflect.Invalid:
-	case reflect.Interface, reflect.Func, reflect.Chan:
-		panic("Type not handled.") // Convert to byte array
 	default:
 		var tmpArray []interface{}
 		tmpArray = append(tmpArray, concreteVal)
