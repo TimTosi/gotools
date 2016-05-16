@@ -4,22 +4,12 @@ import "reflect"
 
 // -----------------------------------------------------------------------------
 
-// TODO
-func ValToBitMap(valArrays ...[]interface{}) map[interface{}][]int {
-	var bitMap map[interface{}][]int
+// Bitset is a structure representing a bitmap set.
+type Bitset map[string]map[string][]int
 
-	for i, valArray := range valArrays {
-		for _, val := range valArray {
-			if _, ok := bitMap[val]; !ok {
-				bitMap[val] = make([]int, len(valArray))
-			}
-			bitMap[val][i] = 1
-		}
-	}
-	return bitMap
-}
+// -----------------------------------------------------------------------------
 
-// TODO
+// appendMatrix is a helper function used by `Flatten`.
 func appendMatrix(a, b [][]interface{}) [][]interface{} {
 	tmp := a[0]
 
@@ -32,7 +22,7 @@ func appendMatrix(a, b [][]interface{}) [][]interface{} {
 	return a
 }
 
-// TODO
+// concatArrays is a helper function used by `Flatten`.
 func concatArrays(a, b [][]interface{}) [][]interface{} {
 	var tmp []interface{}
 
@@ -45,7 +35,38 @@ func concatArrays(a, b [][]interface{}) [][]interface{} {
 	return append([][]interface{}{}, tmp)
 }
 
-// TODO
+// -----------------------------------------------------------------------------
+
+// ValToBitMap generates a bitmap set from a two-dimensional array.
+// Each column name is stored in `index`.
+//
+// NOTE: `index` lenght MUST be equal or longer than slice's length contained
+// in `valArrays`.
+func ValToBitMap(valArrays [][]interface{}, index []string) (bm Bitset) {
+	bm = make(Bitset)
+
+	for i, valArray := range valArrays {
+		for j, val := range valArray {
+			colName := index[j]
+			v := val.(reflect.Value).Interface().(string)
+			if _, ok := bm[colName]; !ok {
+				bm[colName] = make(map[string][]int)
+			}
+			if _, ok := bm[colName][v]; !ok {
+				bm[colName][v] = make([]int, len(valArrays))
+			}
+			bm[colName][v][i] = 1
+		}
+	}
+	return
+}
+
+// Flatten generates a two-dimensional array from several Go type, including
+// composed types and nested types. The purpose of this array is to be
+// converted into a bitmap set.
+//
+// NOTE: `struct` and `map` types MUST always be the last field of `iface`.
+// NOTE: This function panics if a struct's field is not exported.
 func Flatten(iface interface{}) [][]interface{} {
 	var flatArray [][]interface{}
 	concreteVal := reflect.ValueOf(iface)
