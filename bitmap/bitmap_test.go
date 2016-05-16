@@ -38,6 +38,26 @@ func generateSubsetMultiple(iface interface{}) [][]interface{} {
 	return subset
 }
 
+// generateSubsetMultiple returns a `[][]interface{}` composed of
+// `iface` values.
+func generateSubsetStruct(iface interface{}) [][]interface{} {
+	var subset [][]interface{}
+	concreteVal := reflect.ValueOf(iface)
+	subset = append(subset, make([]interface{}, 0))
+
+	for i := 0; i < concreteVal.NumField(); i++ {
+		if concreteVal.Field(i).Kind() == reflect.Struct {
+			subset = concatArrays(
+				subset,
+				generateSubsetStruct(concreteVal.Field(i).Interface()),
+			)
+		} else {
+			subset[0] = append(subset[0], concreteVal.Field(i))
+		}
+	}
+	return subset
+}
+
 // -----------------------------------------------------------------------------
 
 func TestFlatten_singleValue_int(t *testing.T) {
@@ -162,11 +182,23 @@ func TestFlatten_singleValue_chan(t *testing.T) {
 
 // -----------------------------------------------------------------------------
 
-// func TestFlatten_singleValue_func(t *testing.T) {
-// 	myFunc := func() { print("Yo") }
-// 	ensure.Subset(t, Flatten(myFunc), generateSubsetSingle(myFunc))
-// }
+func TestFlatten_composedValue_singleStruct(t *testing.T) {
+	mockStruct := struct {
+		MockInt    int
+		MockString string
+	}{1, "Ok"}
+	ensure.Subset(t, Flatten(mockStruct), generateSubsetStruct(mockStruct))
+}
 
-// struct single val
-
-// struct composed
+func TestFlatten_composedValue_nestedStruct(t *testing.T) {
+	mockStruct := struct {
+		MockInt    int
+		MockString string
+		MockStruct struct{ MockInt32 int32 }
+	}{
+		1,
+		"Ok",
+		struct{ MockInt32 int32 }{32},
+	}
+	ensure.Subset(t, Flatten(mockStruct), generateSubsetStruct(mockStruct))
+}

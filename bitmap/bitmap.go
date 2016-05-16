@@ -5,7 +5,7 @@ import "reflect"
 // -----------------------------------------------------------------------------
 
 // TODO
-func valToBitMap(valArrays ...[]interface{}) map[interface{}][]int {
+func ValToBitMap(valArrays ...[]interface{}) map[interface{}][]int {
 	var bitMap map[interface{}][]int
 
 	for i, valArray := range valArrays {
@@ -32,6 +32,7 @@ func appendMatrix(a, b [][]interface{}) [][]interface{} {
 	return a
 }
 
+// TODO
 func concatArrays(a, b [][]interface{}) [][]interface{} {
 	var tmp []interface{}
 
