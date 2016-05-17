@@ -1,4 +1,4 @@
-package bitmap
+package bitset
 
 import "reflect"
 
@@ -37,25 +37,25 @@ func concatArrays(a, b [][]interface{}) [][]interface{} {
 
 // -----------------------------------------------------------------------------
 
-// ValToBitMap generates a bitmap set from a two-dimensional array.
+// ValToBitSet generates a bitmap set from a two-dimensional array.
 // Each column name is stored in `index`.
 //
 // NOTE: `index` lenght MUST be equal or longer than slice's length contained
 // in `valArrays`.
-func ValToBitMap(valArrays [][]interface{}, index []string) (bm Bitset) {
-	bm = make(Bitset)
+func ValToBitSet(valArrays [][]interface{}, index []string) (bs Bitset) {
+	bs = make(Bitset)
 
 	for i, valArray := range valArrays {
 		for j, val := range valArray {
 			colName := index[j]
 			v := val.(reflect.Value).Interface().(string)
-			if _, ok := bm[colName]; !ok {
-				bm[colName] = make(map[string][]int)
+			if _, ok := bs[colName]; !ok {
+				bs[colName] = make(map[string][]int)
 			}
-			if _, ok := bm[colName][v]; !ok {
-				bm[colName][v] = make([]int, len(valArrays))
+			if _, ok := bs[colName][v]; !ok {
+				bs[colName][v] = make([]int, len(valArrays))
 			}
-			bm[colName][v][i] = 1
+			bs[colName][v][i] = 1
 		}
 	}
 	return
