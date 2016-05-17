@@ -40,7 +40,12 @@ func concatArrays(a, b [][]interface{}) [][]interface{} {
 
 // valueToString converts an `iface` to its `string` representation.
 func valueToString(iface interface{}) string {
-	v := reflect.ValueOf(iface)
+	var v reflect.Value
+	if reflect.TypeOf(iface).String() == "reflect.Value" {
+		v = iface.(reflect.Value)
+	} else {
+		v = reflect.ValueOf(iface)
+	}
 
 	switch v.Kind() {
 	case reflect.Int:

@@ -209,7 +209,7 @@ func TestFlatten_composedValue_nestedStruct(t *testing.T) {
 
 // -----------------------------------------------------------------------------
 
-func ValToBitSetMap(t *testing.T) {
+func TestValToBitSetMap(t *testing.T) {
 	mockBitSet := Bitset{
 		"ID": map[string][]int{
 			"1": {1, 0, 0, 0, 0, 0, 0, 0},
