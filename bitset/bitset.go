@@ -1,6 +1,9 @@
 package bitset
 
-import "reflect"
+import (
+	"reflect"
+	"strconv"
+)
 
 // -----------------------------------------------------------------------------
 
@@ -35,10 +38,23 @@ func concatArrays(a, b [][]interface{}) [][]interface{} {
 	return append([][]interface{}{}, tmp)
 }
 
+// valueToString converts an `iface` to its `string` representation.
+func valueToString(iface interface{}) string {
+	v := reflect.ValueOf(iface)
+
+	switch v.Kind() {
+	case reflect.Int:
+		return strconv.Itoa(v.Interface().(int))
+	case reflect.String:
+		return v.Interface().(string)
+	}
+	return ""
+}
+
 // -----------------------------------------------------------------------------
 
-// ValToBitSet generates a bitmap set from a two-dimensional array.
-// Each column name is stored in `index`.
+// ValToBitSet generates a bitmap set from a two-dimensional array of
+// `reflect.Value`. Each column name is stored in `index`.
 //
 // NOTE: `index` lenght MUST be equal or longer than slice's length contained
 // in `valArrays`.
@@ -48,7 +64,7 @@ func ValToBitSet(valArrays [][]interface{}, index []string) (bs Bitset) {
 	for i, valArray := range valArrays {
 		for j, val := range valArray {
 			colName := index[j]
-			v := val.(reflect.Value).Interface().(string)
+			v := valueToString(val)
 			if _, ok := bs[colName]; !ok {
 				bs[colName] = make(map[string][]int)
 			}

@@ -209,7 +209,45 @@ func TestFlatten_composedValue_nestedStruct(t *testing.T) {
 
 // -----------------------------------------------------------------------------
 
-func TestValToBitMap_x(t *testing.T) {
-	mockBitSet := [][]
-	ensure.Subset(t, Flatten(mockStructSingle), genSubsetStruct(mockStructSingle))
+func ValToBitSetMap(t *testing.T) {
+	mockBitSet := Bitset{
+		"ID": map[string][]int{
+			"1": {1, 0, 0, 0, 0, 0, 0, 0},
+			"2": {0, 1, 0, 0, 0, 0, 0, 0},
+			"3": {0, 0, 1, 0, 0, 0, 0, 0},
+			"4": {0, 0, 0, 1, 0, 0, 0, 0},
+			"5": {0, 0, 0, 0, 1, 0, 0, 0},
+			"6": {0, 0, 0, 0, 0, 1, 0, 0},
+			"7": {0, 0, 0, 0, 0, 0, 1, 0},
+			"8": {0, 0, 0, 0, 0, 0, 0, 1},
+		},
+		"Device": map[string][]int{
+			"Phone":     {1, 0, 1, 1, 0, 0, 0, 0},
+			"Tablet":    {0, 1, 0, 0, 0, 0, 0, 0},
+			"Desktop":   {0, 0, 0, 0, 1, 1, 0, 1},
+			"SmartGear": {0, 0, 0, 0, 0, 0, 1, 0},
+		},
+		"Height": map[string][]int{
+			"200": {1, 0, 0, 0, 0, 1, 0, 1},
+			"300": {0, 0, 1, 0, 0, 0, 1, 0},
+			"500": {0, 1, 0, 1, 1, 0, 0, 0},
+		},
+		"Length": map[string][]int{
+			"200": {0, 0, 0, 0, 0, 0, 1, 0},
+			"300": {0, 0, 1, 1, 1, 1, 0, 1},
+			"500": {1, 1, 0, 0, 0, 0, 0, 0},
+		},
+	}
+	idx := []string{"ID", "Device", "Height", "Length"}
+	valArray := [][]interface{}{
+		{"1", "Phone", "200", "500"},
+		{"2", "Tablet", "500", "500"},
+		{"3", "Phone", "300", "300"},
+		{"4", "Phone", "500", "300"},
+		{"5", "Desktop", "500", "300"},
+		{"6", "Desktop", "200", "300"},
+		{"7", "SmartGear", "300", "200"},
+		{"8", "Desktop", "200", "300"},
+	}
+	ensure.Subset(t, ValToBitSet(valArray, idx), mockBitSet)
 }
