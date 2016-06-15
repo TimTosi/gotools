@@ -11,7 +11,7 @@ import (
 func Error(err error) error {
 	if err != nil {
 		_, file, line, _ := runtime.Caller(1)
-		return fmt.Errorf("%s:%d: %s", file, line, err)
+		return fmt.Errorf("%s:%d: %v", file, line, err)
 	}
 	return nil
 }
