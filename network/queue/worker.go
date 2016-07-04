@@ -18,7 +18,6 @@ func (w *ZMQWorker) Receive() (msg string, err error) {
 // TODO
 func (w *ZMQWorker) Close() {
 	w.Close()
-	// Runtine.Finalizer ?
 }
 
 // TODO

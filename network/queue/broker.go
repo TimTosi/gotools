@@ -16,10 +16,7 @@ func (b *ZMQBroker) Send(msg string) error {
 }
 
 // TODO
-func (b *ZMQBroker) Close() {
-	b.Close()
-	// Runtine.Finalizer ?
-}
+func (b *ZMQBroker) Close() { b.Close() }
 
 // -----------------------------------------------------------------------------
 
