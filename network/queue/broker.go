@@ -4,37 +4,35 @@ import zmq "github.com/pebbe/zmq4"
 
 // -----------------------------------------------------------------------------
 
-// TODO
+// Send emits the message `msg` to the first `queue.ZMQWorker` available.
 func (b *ZMQBroker) Send(msg string) error {
 	identity, _ := b.soc.Recv(0)
 	b.soc.Send(identity, zmq.SNDMORE)
-	b.soc.Recv(0) //  Envelope delimiter
-	b.soc.Recv(0) //  Response from worker
+	b.soc.Recv(0)
+	b.soc.Recv(0)
 	b.soc.Send("", zmq.SNDMORE)
 	_, err := b.soc.Send(msg, 0)
 	return err
 }
 
-// TODO
-func (b *ZMQBroker) Close() { b.Close() }
+// Close releases resources acquired by `b.soc`.
+func (b *ZMQBroker) Close() { b.soc.Close() }
 
 // -----------------------------------------------------------------------------
 
-// TODO
+// ZMQBroker is a structure representing a message broker. The network
+// communication stack lies on a Go implementation of the ZeroMQ library.
 type ZMQBroker struct {
-	Broker
-
+	q   Queue
 	soc *zmq.Socket
 }
 
 // NewZMQBroker returns a new `ZMQBroker`.
 //
-// NOTE: Address formatting
-// - tcp://hostname:port sockets let us do "regular" TCP networking
-// - inproc://name sockets let us do in-process networking with the same
-// code we'd use for TCP networking.
-// - ipc:///tmp/filename sockets use UNIX domain sockets for inter-process
-// communication.
+// NOTE: `addr` must be of the form
+// - `tcp://<hostname>:<port>` for "regular" TCP networking.
+// - `inproc://<name>` for in-process networking.
+// - `ipc:///<tmp/filename>` for inter-process communication.
 func NewZMQBroker(addr string) (*ZMQBroker, error) {
 	soc, err := zmq.NewSocket(zmq.ROUTER)
 	if err != nil {
@@ -43,5 +41,5 @@ func NewZMQBroker(addr string) (*ZMQBroker, error) {
 	if err := soc.Bind(addr); err != nil {
 		return nil, err
 	}
-	return &ZMQBroker{soc: soc}, nil
+	return &ZMQBroker{q: NewQueue(), soc: soc}, nil
 }
