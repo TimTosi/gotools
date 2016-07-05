@@ -4,7 +4,8 @@ import "time"
 
 // -----------------------------------------------------------------------------
 
-// TODO
+// TimeoutReached returns `true` if the time elapsed since `m.Timeout` is
+// greater or equal to `d`.
 func (m *Message) TimeoutReached(d time.Duration) bool {
 	if elapsed := time.Since(m.Timeout); elapsed >= d {
 		return true
@@ -14,7 +15,8 @@ func (m *Message) TimeoutReached(d time.Duration) bool {
 
 // -----------------------------------------------------------------------------
 
-// TODO
+// Message is a structure representing messages sent and buffered between
+// `queue.ZMQBroker` and `queue.ZMQWorker`.
 type Message struct {
 	ID      int
 	Msg     string
