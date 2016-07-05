@@ -5,7 +5,7 @@ import "time"
 // -----------------------------------------------------------------------------
 
 // TimeoutReached returns `true` if the time elapsed since `m.Timeout` is
-// greater or equal to `d`.
+// greater or equal to `d`. It returns `false` otherwise.
 func (m *Message) TimeoutReached(d time.Duration) bool {
 	if elapsed := time.Since(m.Timeout); elapsed >= d {
 		return true
