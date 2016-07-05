@@ -16,7 +16,7 @@ func (b *ZMQBroker) Send(msg string) error {
 }
 
 // Close releases resources acquired by `b.soc`.
-func (b *ZMQBroker) Close() { b.soc.Close() }
+func (b *ZMQBroker) Close() { _ = b.soc.Close() }
 
 // -----------------------------------------------------------------------------
 
@@ -33,7 +33,7 @@ type ZMQBroker struct {
 // - `tcp://<hostname>:<port>` for "regular" TCP networking.
 // - `inproc://<name>` for in-process networking.
 // - `ipc:///<tmp/filename>` for inter-process communication.
-func NewZMQBroker(addr string) (*ZMQBroker, error) {
+func NewZMQBroker(size int, addr string) (*ZMQBroker, error) {
 	soc, err := zmq.NewSocket(zmq.ROUTER)
 	if err != nil {
 		return nil, err
@@ -41,5 +41,5 @@ func NewZMQBroker(addr string) (*ZMQBroker, error) {
 	if err := soc.Bind(addr); err != nil {
 		return nil, err
 	}
-	return &ZMQBroker{q: NewQueue(), soc: soc}, nil
+	return &ZMQBroker{q: NewQueue(size), soc: soc}, nil
 }
