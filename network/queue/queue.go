@@ -39,17 +39,22 @@ func (q *Queue) Push(msg *Message) {
 // Poll purges `q.msgs` from `queue.Message` no longer relevant.
 // In the case where an `ID` is received on `IDChan`, the corresponding
 // `queue.Message` is deleted from `q.msgs` and `q.Purge()` is called.
-// When no `ID` is received on `IDChan` after `d` time, `q.Purge()` is called.
+// When no `ID` is received on `IDChan` after `d` time, `q.Purge()` is called
+// and returned value is sent through `emitAgainChan` channel if not `nil`.
 //
 // NOTE: This function is an infinite loop.
-func (q Queue) Poll(IDChan <-chan int, msgChan chan<- *Message, d time.Duration) {
+func (q Queue) Poll(IDChan <-chan int, emitAgainChan chan<- *Message, d time.Duration) {
 	for {
 		select {
 		case ID := <-IDChan:
 			q.Discard(ID)
-			msgChan <- q.Purge(d)
+			if msg := q.Purge(d); msg != nil {
+				emitAgainChan <- msg
+			}
 		case <-time.After(d):
-			msgChan <- q.Purge(d)
+			if msg := q.Purge(d); msg != nil {
+				emitAgainChan <- msg
+			}
 		}
 	}
 }
