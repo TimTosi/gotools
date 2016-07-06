@@ -33,7 +33,7 @@ type ZMQWorker struct {
 // NewZMQWorker returns a new `ZMQWorker`.
 //
 // NOTE: `id` should be unique.
-// NOTE: `addr` must be of the form
+// NOTE: `addr` must be of the following form
 // - `tcp://<hostname>:<port>` for "regular" TCP networking.
 // - `inproc://<name>` for in-process networking.
 // - `ipc:///<tmp/filename>` for inter-process communication.
