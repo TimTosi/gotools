@@ -1,6 +1,9 @@
 package queue
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // -----------------------------------------------------------------------------
 
@@ -11,6 +14,14 @@ func (m *Message) TimeoutReached(d time.Duration) bool {
 		return true
 	}
 	return false
+}
+
+// Copy returns a new copy of `m` with updated `m.Timeout`.
+func (m *Message) Copy() *Message { return NewMessage(m.ID, m.Msg) }
+
+// ToString returns the `string` representation of `m`.
+func (m *Message) ToString() string {
+	return fmt.Sprintf("{ID: %d, Msg: \"%s\"}", m.ID, m.Msg)
 }
 
 // -----------------------------------------------------------------------------
