@@ -11,7 +11,7 @@ import (
 // the length of `q.msgs` is greater than 0. It returns `nil` otherwise.
 //
 // NOTE: This function is thread-safe.
-func (q Queue) Shift() *Message {
+func (q *Queue) Shift() *Message {
 	q.Lock()
 	defer q.Unlock()
 
@@ -26,10 +26,13 @@ func (q Queue) Shift() *Message {
 // Push appends `msg` at the end of `q.msgs`.
 //
 // NOTE: This function is thread-safe.
-func (q Queue) Push(msg *Message) {
+func (q *Queue) Push(msg *Message) {
 	q.Lock()
 	defer q.Unlock()
 
+	if msg == nil {
+		return
+	}
 	q.msgs = append(q.msgs, msg)
 }
 
@@ -55,7 +58,7 @@ func (q Queue) Poll(IDChan <-chan int, msgChan chan<- *Message, d time.Duration)
 // `queue.Message.ID` matches `ID`.
 //
 // NOTE: This function is thread-safe.
-func (q Queue) Discard(ID int) bool {
+func (q *Queue) Discard(ID int) bool {
 	q.Lock()
 	defer q.Unlock()
 
@@ -74,7 +77,7 @@ func (q Queue) Discard(ID int) bool {
 // since `queue.Message.Timeout` is greater or equal to `d`.
 //
 // NOTE: This function is thread-safe.
-func (q Queue) Purge(d time.Duration) *Message {
+func (q *Queue) Purge(d time.Duration) *Message {
 	q.Lock()
 	defer q.Unlock()
 	// TODO BETTER LOCKING HERE
@@ -100,4 +103,4 @@ type Queue struct {
 }
 
 // NewQueue returns a new `queue.Queue`.
-func NewQueue(size int) Queue { return Queue{RWMutex: &sync.RWMutex{}, msgs: make([]*Message, size)} }
+func NewQueue() *Queue { return &Queue{RWMutex: &sync.RWMutex{}, msgs: make([]*Message, 0)} }
