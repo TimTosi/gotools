@@ -1,7 +1,8 @@
 package queue
 
 import (
-	"fmt"
+	"encoding/json"
+	"strconv"
 	"time"
 
 	zmq "github.com/pebbe/zmq4"
@@ -13,11 +14,13 @@ import (
 func (b *ZMQBroker) Send(msg string) error {
 	identity, _ := b.soc.Recv(0)
 	b.soc.Send(identity, zmq.SNDMORE)
-	s1, err1 := b.soc.Recv(0)
-	fmt.Printf("PRINT 1: %s -- %v\n", s1, err1) // ERASE
-	s2, err2 := b.soc.Recv(0)
-	fmt.Printf("PRINT 2: %s -- %v\n", s2, err2) // ERASE
-	// b.msgIDChan <- ID received
+
+	b.soc.Recv(0)
+	msgRecv, _ := b.soc.Recv(0)
+
+	msgID, _ := strconv.Atoi(msgRecv)
+	b.q.Discard(msgID)
+
 	b.soc.Send("", zmq.SNDMORE)
 	_, err := b.soc.Send(msg, 0)
 	return err
@@ -31,9 +34,9 @@ func (b *ZMQBroker) Close() { _ = b.soc.Close() }
 // ZMQBroker is a structure representing a message broker. The network
 // communication stack lies on a Go implementation of the ZeroMQ library.
 type ZMQBroker struct {
-	q         *Queue
-	soc       *zmq.Socket
-	msgIDChan chan int
+	q             *Queue
+	soc           *zmq.Socket
+	emitAgainChan chan *Message
 }
 
 // NewZMQBroker returns a new `ZMQBroker`.
@@ -50,26 +53,27 @@ func NewZMQBroker(addr string) (*ZMQBroker, error) {
 	if err := soc.Bind(addr); err != nil {
 		return nil, err
 	}
-	return &ZMQBroker{msgIDChan: make(chan int), q: NewQueue(), soc: soc}, nil
+	return &ZMQBroker{emitAgainChan: make(chan *Message, 0), q: NewQueue(), soc: soc}, nil
 }
 
 // Run launches the broker and coordinates the message queue `b.q`.
 //
 // NOTE: This function is an infinite loop.
 func (b *ZMQBroker) Run(d time.Duration, workChan chan *Message) {
-	emitAgainChan := make(chan *Message, 0)
-	go b.q.Poll(b.msgIDChan, emitAgainChan, d)
+	go b.q.Poll(b.emitAgainChan, d)
 
 	for {
 		select {
-		case msg := <-emitAgainChan:
-			b.Send(msg.ToString()) // HANDLE ERROR
+		case msg := <-b.emitAgainChan:
+			m, _ := json.Marshal(*msg) // HANDLE ERROR
 			b.q.Push(msg.Copy())
+			b.Send(string(m))
 		default:
 			select {
 			case msg := <-workChan:
-				b.Send(msg.ToString()) // HANDLE ERROR
+				m, _ := json.Marshal(*msg) // HANDLE ERROR
 				b.q.Push(msg)
+				b.Send(string(m))
 			default:
 			}
 		}

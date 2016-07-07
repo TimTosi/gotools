@@ -1,6 +1,7 @@
 package queue
 
 import (
+	"fmt"
 	"sync"
 	"time"
 )
@@ -29,7 +30,7 @@ func (q *Queue) Shift() *Message {
 func (q *Queue) Push(msg *Message) {
 	q.Lock()
 	defer q.Unlock()
-
+	fmt.Printf("Queue len: %d\n", len(q.msgs))
 	if msg == nil {
 		return
 	}
@@ -37,20 +38,13 @@ func (q *Queue) Push(msg *Message) {
 }
 
 // Poll purges `q.msgs` from `queue.Message` no longer relevant.
-// In the case where an `ID` is received on `IDChan`, the corresponding
-// `queue.Message` is deleted from `q.msgs` and `q.Purge()` is called.
-// When no `ID` is received on `IDChan` after `d` time, `q.Purge()` is called
-// and returned value is sent through `emitAgainChan` channel if not `nil`.
+// After `d` time, `q.Purge()` is called and returned value is sent through
+// `emitAgainChan` channel if not `nil`.
 //
 // NOTE: This function is an infinite loop.
-func (q Queue) Poll(IDChan <-chan int, emitAgainChan chan<- *Message, d time.Duration) {
+func (q *Queue) Poll(emitAgainChan chan<- *Message, d time.Duration) {
 	for {
 		select {
-		case ID := <-IDChan:
-			q.Discard(ID)
-			if msg := q.Purge(d); msg != nil {
-				emitAgainChan <- msg
-			}
 		case <-time.After(d):
 			if msg := q.Purge(d); msg != nil {
 				emitAgainChan <- msg
@@ -78,8 +72,9 @@ func (q *Queue) Discard(ID int) bool {
 	return false
 }
 
-// Purge deletes all `queue.Message`s from `q.msgs` where the time elapsed
+// Purge deletes one `queue.Message` from `q.msgs` where the time elapsed
 // since `queue.Message.Timeout` is greater or equal to `d`.
+// The `queue.Message` deleted is returned.
 //
 // NOTE: This function is thread-safe.
 func (q *Queue) Purge(d time.Duration) *Message {

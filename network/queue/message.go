@@ -1,9 +1,6 @@
 package queue
 
-import (
-	"fmt"
-	"time"
-)
+import "time"
 
 // -----------------------------------------------------------------------------
 
@@ -19,19 +16,14 @@ func (m *Message) TimeoutReached(d time.Duration) bool {
 // Copy returns a new copy of `m` with updated `m.Timeout`.
 func (m *Message) Copy() *Message { return NewMessage(m.ID, m.Msg) }
 
-// ToString returns the `string` representation of `m`.
-func (m *Message) ToString() string {
-	return fmt.Sprintf("{ID: %d, Msg: \"%s\"}", m.ID, m.Msg)
-}
-
 // -----------------------------------------------------------------------------
 
 // Message is a structure representing messages sent and buffered between
 // `queue.ZMQBroker` and `queue.ZMQWorker`.
 type Message struct {
-	ID      int
-	Msg     string
-	Timeout time.Time
+	ID      int       `json:"ID,omitempty"`
+	Msg     string    `json:"msg,omitempty"`
+	Timeout time.Time `json:"-"`
 }
 
 // NewMessage returns a new `queue.Message`.

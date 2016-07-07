@@ -1,19 +1,33 @@
 package queue
 
-import zmq "github.com/pebbe/zmq4"
+import (
+	"encoding/json"
+	"strconv"
+
+	zmq "github.com/pebbe/zmq4"
+)
 
 // -----------------------------------------------------------------------------
 
 // Receive returns a `string` containing a message received on `w.soc` or
 // an error.
 func (w *ZMQWorker) Receive() (msg string, err error) {
-	w.soc.Send("", zmq.SNDMORE)
-	w.soc.Send("Hi Boss", 0) // Change msg and send last message ID received
+	var m Message
 
-	if _, err := w.soc.Recv(0); err != nil {
-		return "", err
+	w.soc.Send("", zmq.SNDMORE)
+	w.soc.Send(w.lastMsgID, 0)
+
+	if _, err = w.soc.Recv(0); err != nil {
+		return
 	}
-	return w.soc.Recv(0)
+	if msg, err = w.soc.Recv(0); err != nil {
+		return
+	}
+	if err = json.Unmarshal([]byte(msg), &m); err != nil {
+		return
+	}
+	w.lastMsgID = strconv.Itoa(m.ID)
+	return
 }
 
 // Close releases resources acquired by `w.soc`.
@@ -27,7 +41,8 @@ func (w *ZMQWorker) Identity() (string, error) { return w.soc.GetIdentity() }
 // ZMQWorker is a structure representing a worker process. The network
 // communication stack lies on a Go implementation of the ZeroMQ library.
 type ZMQWorker struct {
-	soc *zmq.Socket
+	soc       *zmq.Socket
+	lastMsgID string
 }
 
 // NewZMQWorker returns a new `ZMQWorker`.
