@@ -27,6 +27,11 @@ func (b *ZMQBroker) Send(msg string) error {
 }
 
 // Close releases resources acquired by `b.soc`.
+//
+// NOTE: If not called explicitly, the socket will be closed
+// on garbage collection.
+// NOTE: Address used by `w.soc` could not be available as soon as the function
+// returns. See `http://zeromq.org/whitepapers%3aarchitecture#toc6` for details.
 func (b *ZMQBroker) Close() { _ = b.soc.Close() }
 
 // -----------------------------------------------------------------------------
