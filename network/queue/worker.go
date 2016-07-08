@@ -11,12 +11,15 @@ import (
 
 // Receive returns a `string` containing a message received on `w.soc` or
 // an error.
-func (w *ZMQWorker) Receive() (msg string, err error) {
-	var m Message
+func (w *ZMQWorker) Receive() (m Message, err error) {
+	var msg string
 
-	w.soc.Send("", zmq.SNDMORE)
-	w.soc.Send(w.lastMsgID, 0)
-
+	if _, err = w.soc.Send("", zmq.SNDMORE); err != nil {
+		return
+	}
+	if _, err = w.soc.Send(w.lastMsgID, 0); err != nil {
+		return
+	}
 	if _, err = w.soc.Recv(0); err != nil {
 		return
 	}

@@ -1,7 +1,6 @@
 package queue
 
 import (
-	"fmt"
 	"sync"
 	"time"
 )
@@ -30,7 +29,7 @@ func (q *Queue) Shift() *Message {
 func (q *Queue) Push(msg *Message) {
 	q.Lock()
 	defer q.Unlock()
-	fmt.Printf("Queue len: %d\n", len(q.msgs))
+
 	if msg == nil {
 		return
 	}
@@ -80,7 +79,7 @@ func (q *Queue) Discard(ID int) bool {
 func (q *Queue) Purge(d time.Duration) *Message {
 	q.Lock()
 	defer q.Unlock()
-	// TODO BETTER LOCKING HERE
+
 	for i := 0; i < len(q.msgs); i++ {
 		if q.msgs[i].TimeoutReached(d) == true {
 			msg := q.msgs[i]
