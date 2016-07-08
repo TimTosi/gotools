@@ -20,6 +20,8 @@ func (m *Message) Copy() *Message { return NewMessage(m.ID, m.Msg) }
 
 // Message is a structure representing messages sent and buffered between
 // `queue.ZMQBroker` and `queue.ZMQWorker`.
+//
+// NOTE: a `queue.Message` where `ID` equals `0` is considered invalid.
 type Message struct {
 	ID      int       `json:"ID,omitempty"`
 	Msg     string    `json:"msg,omitempty"`
