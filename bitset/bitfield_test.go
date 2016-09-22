@@ -50,39 +50,81 @@ func TestBitField_Pos(t *testing.T) {
 }
 
 func TestBitField_WhichSet(t *testing.T) {
-	bf := NewBitField([]byte("Q"))
-	ensure.Subset(t, bf.WhichSet(1, 8), []int64{1, 3, 7})
-	ensure.Subset(t, bf.WhichSet(0, 8), []int64{0, 2, 4, 5, 6})
+	testCases := []struct {
+		name     string
+		mockData string
+		bitValue int
+		limit    int64
+		expected []int64
+	}{
+		{"bitSetRegular", "Q", 1, 8, []int64{1, 3, 7}},
+		{"bitSetEmptyBitField", "", 1, 8, ([]int64)(nil)},
+		{"bitNotSetRegular", "Q", 0, 8, []int64{0, 2, 4, 5, 6}},
+		{"bitNotSetEmptyBitField", "", 0, 8, ([]int64)(nil)},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ensure.Subset(
+				t,
+				NewBitField([]byte(tc.mockData)).WhichSet(tc.bitValue, tc.limit),
+				tc.expected,
+			)
+		})
+	}
+}
+
+func TestBitField_WhichSetInclusive(t *testing.T) {
+	testCases := []struct {
+		name     string
+		mockData string
+		mockIdxs []string
+		mockMod  bool
+		expected []int64
+	}{
+		{"inclusiveRegular", "Q", []string{"1", "5", "7"}, true, []int64{1, 7}},
+		{"inclusiveEmptyBitField", "", []string{"1", "5", "7"}, true, ([]int64)(nil)},
+		{"inclusiveEmptyIdxs", "Q", []string{}, true, ([]int64)(nil)},
+		{"inclusiveNoIdxsMatch", "Q", []string{"0", "2", "5"}, true, ([]int64)(nil)},
+		{"exclusiveRegular", "Q", []string{"1", "7"}, false, []int64{3}},
+		{"exclusiveEmptyBitField", "", []string{"1", "7"}, false, ([]int64)(nil)},
+		{"exclusiveEmptyIdxs", "Q", []string{}, false, []int64{1, 3, 7}},
+		{"exclusiveNoIdxsMatch", "Q", []string{"0", "2", "5"}, false, []int64{1, 3, 7}},
+		{"exclusiveAllIdxsMatch", "Q", []string{"1", "3", "7"}, false, ([]int64)(nil)},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ensure.Subset(
+				t,
+				NewBitField([]byte(tc.mockData)).WhichSetInclusive(tc.mockIdxs, tc.mockMod),
+				tc.expected,
+			)
+		})
+	}
 }
 
 // -----------------------------------------------------------------------------
 
-func BenchmarkBitShift_100(b *testing.B) {
-	limit := 100
-	bf := NewBitField([]byte(mockData(limit)))
-	b.ResetTimer()
-
-	for n := 0; n < b.N; n++ {
-		_ = bf.WhichSet(1, int64(3*limit))
+func BenchmarkWhichSet(b *testing.B) {
+	benchmarks := []struct {
+		name     string
+		limit    int
+		expected int64
+	}{
+		{"100Bytes", 100, 300},
+		{"1000Bytes", 1000, 3000},
+		{"10000Bytes", 10000, 30000},
 	}
-}
 
-func BenchmarkBitShift_1000(b *testing.B) {
-	limit := 1000
-	bf := NewBitField([]byte(mockData(limit)))
-	b.ResetTimer()
+	for _, bm := range benchmarks {
+		b.Run(bm.name, func(b *testing.B) {
+			bf := NewBitField([]byte(mockData(bm.limit)))
+			b.ResetTimer()
 
-	for n := 0; n < b.N; n++ {
-		_ = bf.WhichSet(1, int64(3*limit))
-	}
-}
-
-func BenchmarkBitShift_10000(b *testing.B) {
-	limit := 10000
-	bf := NewBitField([]byte(mockData(limit)))
-	b.ResetTimer()
-
-	for n := 0; n < b.N; n++ {
-		_ = bf.WhichSet(1, int64(3*limit))
+			for n := 0; n < b.N; n++ {
+				_ = bf.WhichSet(1, bm.expected)
+			}
+		})
 	}
 }

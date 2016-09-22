@@ -57,10 +57,7 @@ func (bf *BitField) WhichSetInclusive(idxs []string, inclusive bool) (res []int6
 	if inclusive == true {
 		for _, idx := range idxs {
 			i, err := strconv.ParseInt(idx, 10, 64)
-			if err != nil {
-				continue
-			}
-			if int(bf.data[i/8]>>(7-uint(i%8))&1) == 1 {
+			if err == nil && i < bf.bitCount && int(bf.data[i/8]>>(7-uint(i%8))&1) == 1 {
 				res = append(res, i)
 			}
 		}
@@ -72,8 +69,8 @@ func (bf *BitField) WhichSetInclusive(idxs []string, inclusive bool) (res []int6
 				j++
 			}
 		}
-		return res
 	}
+	return res
 }
 
 // BitCount returns the number of bit contained in bf.data.
