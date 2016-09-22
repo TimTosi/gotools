@@ -1,6 +1,11 @@
 package bitset
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+
+	"github.com/timtosi/gotools/slices"
+)
 
 // -----------------------------------------------------------------------------
 
@@ -44,10 +49,40 @@ func (bf *BitField) WhichSet(v int, limit int64) (res []int64) {
 	return res
 }
 
+// WhichSetInclusive returns a slice of `[]int64` values representing indexes
+// of `bf.data` where a bit is set to `1`. If `inclusive` is `true`, values
+// found in `res` are composed of a subset of `idxs`. If `inclusive` is `false`,
+// values found in `res` cannot be found in `idxs`.
+func (bf *BitField) WhichSetInclusive(idxs []string, inclusive bool) (res []int64) {
+	if inclusive == true {
+		for _, idx := range idxs {
+			i, err := strconv.ParseInt(idx, 10, 64)
+			if err != nil {
+				continue
+			}
+			if int(bf.data[i/8]>>(7-uint(i%8))&1) == 1 {
+				res = append(res, i)
+			}
+		}
+	} else {
+		for i, j := int64(0), int64(0); i < bf.bitCount && j < 10; i++ {
+			if int(bf.data[i/8]>>(7-uint(i%8))&1) == 1 &&
+				slices.StringInArray(idxs, strconv.FormatInt(i, 10)) == false {
+				res = append(res, int64(i))
+				j++
+			}
+		}
+		return res
+	}
+}
+
 // BitCount returns the number of bit contained in bf.data.
 func (bf *BitField) BitCount() int64 { return bf.bitCount }
 
 // -----------------------------------------------------------------------------
+
+// BitMatrix is a `slice` of `bitset.BitField`.
+// type BitMatrix []*BitField
 
 // BitField is a `struct` exposing methods related to bit manipulation.
 type BitField struct {
