@@ -49,6 +49,21 @@ func (bf *BitField) WhichSet(v int, limit int64) (res []int64) {
 	return res
 }
 
+// WhichSetFrom returns a slice of `[]int64` of up to `limit` values representing
+// indexes of `bf.data` where a bit is set to `v` and the index of the last bit
+// processed.
+func (bf *BitField) WhichSetFrom(v int, limit, from int64) (int64, []int64) {
+	var res []int64
+
+	for i, j := from, int64(0); i < bf.bitCount && j < limit; i++ {
+		if int(bf.data[i/8]>>(7-uint(i%8))&1) == v {
+			res = append(res, int64(i))
+			j++
+		}
+	}
+	return from, res
+}
+
 // WhichSetInclusive returns a slice of `[]int64` values representing indexes
 // of `bf.data` where a bit is set to `1`. If `inclusive` is `true`, values
 // found in `res` are composed of a subset of `idxs`. If `inclusive` is `false`,
